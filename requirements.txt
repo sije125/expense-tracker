@@ -1,0 +1,10 @@
+pandas>=1.5.0
+scikit-learn>=1.2.0
+matplotlib>=3.6.0
+seaborn>=0.12.0
+numpy>=1.24.0
+plotly>=5.12.0
+dash>=2.7.0
+plaid-python>=9.0.0
+python-dotenv>=1.0.0
+flask>=2.3.0
