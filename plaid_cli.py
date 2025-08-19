@@ -27,7 +27,7 @@ class PlaidCLI:
         print("=" * 50)
         
         try:
-            # Test API connection
+            # Test API connections
             link_token = self.plaid_client.create_link_token()
             print("✅ Plaid API connection: Working")
             print("✅ Credentials: Valid")
