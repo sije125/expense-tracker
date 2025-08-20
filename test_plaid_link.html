@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Plaid Link</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #0056b3; }
+        #status { margin: 20px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🏦 Test Plaid Link Integration</h1>
+    
+    <div id="status" class="info">
+        Initializing Plaid Link...
+    </div>
+    
+    <button id="link-account" class="btn" disabled>
+        Connect Bank Account
+    </button>
+    
+    <div style="margin-top: 20px;">
+        <h3>Debug Info:</h3>
+        <div id="debug-info"></div>
+    </div>
+
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        const debugDiv = document.getElementById('debug-info');
+        const button = document.getElementById('link-account');
+        
+        function updateStatus(message, type = 'info') {
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+        }
+        
+        function addDebug(message) {
+            debugDiv.innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+        
+        addDebug('Page loaded');
+        
+        // Get link token from server
+        fetch('/api/create_link_token')
+            .then(response => {
+                addDebug(`Link token request status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                addDebug(`Link token response: ${JSON.stringify(data)}`);
+                
+                if (data.link_token) {
+                    initializePlaid(data.link_token);
+                } else {
+                    throw new Error('No link token received');
+                }
+            })
+            .catch(error => {
+                addDebug(`Error getting link token: ${error.message}`);
+                updateStatus('Failed to get link token: ' + error.message, 'error');
+            });
+        
+        function initializePlaid(linkToken) {
+            addDebug(`Initializing Plaid with token: ${linkToken.substring(0, 20)}...`);
+            
+            if (typeof Plaid === 'undefined') {
+                updateStatus('Plaid library not loaded', 'error');
+                addDebug('Plaid object is undefined');
+                return;
+            }
+            
+            try {
+                const handler = Plaid.create({
+                    token: linkToken,
+                    onSuccess: (public_token, metadata) => {
+                        addDebug(`Plaid Link success: ${metadata.institution.name}`);
+                        updateStatus('Successfully connected! Exchanging token...', 'success');
+                        
+                        fetch('/api/exchange_token', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                public_token: public_token,
+                                institution_name: metadata.institution.name
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            addDebug(`Token exchange response: ${JSON.stringify(data)}`);
+                            if (data.success) {
+                                updateStatus(`Successfully connected to ${data.institution}!`, 'success');
+                            } else {
+                                updateStatus('Token exchange failed: ' + data.error, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            addDebug(`Token exchange error: ${error.message}`);
+                            updateStatus('Token exchange failed: ' + error.message, 'error');
+                        });
+                    },
+                    onExit: (err, metadata) => {
+                        addDebug(`User exited Link: ${err ? err.error_type : 'User closed'}`);
+                        updateStatus('Connection cancelled', 'info');
+                    },
+                    onEvent: (eventName, metadata) => {
+                        addDebug(`Plaid Link event: ${eventName}`);
+                    }
+                });
+                
+                button.disabled = false;
+                button.onclick = () => {
+                    addDebug('Connect button clicked');
+                    updateStatus('Opening Plaid Link...', 'info');
+                    handler.open();
+                };
+                
+                updateStatus('Ready to connect! Click the button to start.', 'success');
+                addDebug('Plaid Link handler created successfully');
+                
+            } catch (error) {
+                addDebug(`Error creating Plaid handler: ${error.message}`);
+                updateStatus('Failed to initialize Plaid: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

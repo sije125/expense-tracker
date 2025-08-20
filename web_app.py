@@ -215,6 +215,23 @@ def export_data():
         return render_template('error.html', error=str(e))
 
 
+@app.route('/api/create_link_token')
+def create_link_token_api():
+    """API endpoint to create a link token"""
+    try:
+        link_token = plaid_client.create_link_token()
+        return jsonify({'link_token': link_token})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/test')
+def test_plaid():
+    """Test page for Plaid integration"""
+    with open('test_plaid_link.html', 'r') as f:
+        return f.read()
+
+
 # Create templates directory and basic HTML templates
 def create_templates():
     """Create basic HTML templates"""

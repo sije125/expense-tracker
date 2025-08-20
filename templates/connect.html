@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Connect Bank - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>🏦 Connect Your Bank Account</h4>
+                <p class="text-muted">Securely connect your bank account using Plaid to automatically import transactions.</p>
+                
+                <div class="mt-4">
+                    <button id="link-account" class="btn btn-primary btn-lg">
+                        Connect Bank Account
+                    </button>
+                </div>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        🔒 Your login credentials are never stored. Plaid uses bank-level security to protect your data.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+console.log('Plaid Link script loaded');
+const linkToken = '{{ link_token }}';
+console.log('Link token:', linkToken);
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing Plaid');
+    
+    // Check if Plaid is available
+    if (typeof Plaid === 'undefined') {
+        console.error('Plaid library not loaded');
+        alert('Error: Plaid library failed to load. Please refresh the page.');
+        return;
+    }
+    
+    try {
+        const handler = Plaid.create({
+            token: linkToken,
+            onSuccess: (public_token, metadata) => {
+                console.log('Plaid Link success:', metadata);
+                fetch('/api/exchange_token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        public_token: public_token,
+                        institution_name: metadata.institution.name
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Token exchange response:', data);
+                    if (data.success) {
+                        alert('Successfully connected to ' + data.institution);
+                        window.location.href = '/';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Token exchange error:', error);
+                    alert('Connection failed: ' + error);
+                });
+            },
+            onExit: (err, metadata) => {
+                console.log('User exited Link:', err, metadata);
+            },
+            onEvent: (eventName, metadata) => {
+                console.log('Plaid Link event:', eventName, metadata);
+            }
+        });
+        
+        const button = document.getElementById('link-account');
+        if (button) {
+            button.onclick = function() {
+                console.log('Button clicked, opening Plaid Link');
+                try {
+                    handler.open();
+                } catch (error) {
+                    console.error('Error opening Plaid Link:', error);
+                    alert('Error opening bank connection. Please try refreshing the page.');
+                }
+            };
+            console.log('Button click handler attached');
+        } else {
+            console.error('Link account button not found');
+        }
+        
+    } catch (error) {
+        console.error('Error initializing Plaid:', error);
+        alert('Error initializing bank connection. Please refresh the page.');
+    }
+});
+</script>
+{% endblock %}

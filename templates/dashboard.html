@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>💰 Expense Dashboard</h2>
+        
+        {% if insights %}
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5>Total Spending</h5>
+                        <h3>${{ "%.2f"|format(insights.total_spending) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5>Avg Transaction</h5>
+                        <h3>${{ "%.2f"|format(insights.average_transaction) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white {% if insights.spending_trend > 0 %}bg-warning{% else %}bg-success{% endif %}">
+                    <div class="card-body">
+                        <h5>Trend</h5>
+                        <h3>{{ "%+.1f"|format(insights.spending_trend) }}%</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5>Categories</h5>
+                        <h3>{{ insights.top_spending_categories|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if recent_transactions %}
+        <div class="mt-4">
+            <h4>Recent Transactions</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in recent_transactions %}
+                        <tr>
+                            <td>{{ txn.Date }}</td>
+                            <td>{{ txn.Description }}</td>
+                            <td>${{ "%.2f"|format(txn.Amount) }}</td>
+                            <td>{{ txn.Category }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <h4>Connected Accounts</h4>
+        {% if connected_accounts %}
+            {% for institution, data in connected_accounts.items() %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6>{{ institution }}</h6>
+                    <small class="text-muted">{{ data.accounts|length }} accounts</small>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                <h6>No accounts connected</h6>
+                <p>Connect your bank account to start tracking expenses automatically.</p>
+                <a href="/connect" class="btn btn-primary">Connect Bank Account</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
