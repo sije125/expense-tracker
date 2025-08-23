@@ -97,9 +97,26 @@ def analysis():
         potential_savings = analyzer.calculate_potential_savings()
         monthly_summary = analyzer.monthly_spending_summary()
         
+        # Ensure all numeric values are JSON serializable
+        def make_serializable(obj):
+            if hasattr(obj, 'item'):  # numpy types
+                return obj.item()
+            elif hasattr(obj, 'to_dict'):  # pandas objects
+                return obj.to_dict()
+            elif isinstance(obj, dict):
+                return {str(k): make_serializable(v) for k, v in obj.items()}
+            else:
+                return obj
+        
+        potential_savings = make_serializable(potential_savings)
+        
         # Prepare data for charts
         category_data = insights['top_spending_categories'].to_dict()
-        monthly_data = monthly_summary['Total'].to_dict()
+        
+        # Convert Period objects to strings for JSON serialization
+        monthly_data = {}
+        for period, value in monthly_summary['Total'].items():
+            monthly_data[str(period)] = float(value)
         
         return render_template('analysis.html',
                              insights=insights,
@@ -157,6 +174,13 @@ def api_insights():
         # Convert pandas Series to dict for JSON serialization
         if 'top_spending_categories' in insights:
             insights['top_spending_categories'] = insights['top_spending_categories'].to_dict()
+        
+        # Convert any other pandas objects to JSON-serializable format
+        for key, value in insights.items():
+            if hasattr(value, 'to_dict'):
+                insights[key] = value.to_dict()
+            elif hasattr(value, 'item'):  # numpy types
+                insights[key] = value.item()
         
         return jsonify(insights)
         

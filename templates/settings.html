@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>⚙️ Settings</h2>
+    </div>
+</div>
+
+<!-- Connected Accounts Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🏦 Connected Bank Accounts</h5>
+            </div>
+            <div class="card-body">
+                {% if connected_accounts %}
+                    {% for institution, data in connected_accounts.items() %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h6 class="mb-1">{{ institution }}</h6>
+                                    <small class="text-muted">{{ data.accounts|length }} accounts connected</small>
+                                    <br>
+                                    <small class="text-muted">Connected on: {{ data.connected_at }}</small>
+                                    
+                                    <!-- Account Details -->
+                                    <div class="mt-2">
+                                        {% for account in data.accounts %}
+                                        <div class="badge bg-light text-dark me-2">
+                                            {{ account.name }} ({{ account.type|title }} - ${{ "%.2f"|format(account.balance) }})
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button class="btn btn-outline-danger btn-sm" onclick="removeConnection('{{ institution }}')">
+                                        🗑️ Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <h6>No accounts connected</h6>
+                        <p>Connect your bank account to start tracking expenses automatically.</p>
+                        <a href="/connect" class="btn btn-primary">Connect Bank Account</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Export Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📤 Data Export</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Export Transaction Data</h6>
+                        <p class="text-muted">Download your transaction data in CSV format</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Time Period</label>
+                            <select class="form-select" id="exportDays">
+                                <option value="30">Last 30 days</option>
+                                <option value="90">Last 3 months</option>
+                                <option value="180">Last 6 months</option>
+                                <option value="365" selected>Last year</option>
+                                <option value="all">All time</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-outline-primary" onclick="exportData()">
+                            📄 Export CSV
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>API Access</h6>
+                        <p class="text-muted">Access your data programmatically</p>
+                        
+                        <div class="mb-2">
+                            <code>/api/transactions?days=365</code>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('/api/transactions?days=365')">Copy</button>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <code>/api/insights?days=365</code>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('/api/insights?days=365')">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy & Security Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🔐 Privacy & Security</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Security</h6>
+                        <ul class="list-unstyled">
+                            <li>✅ All connections use bank-level encryption</li>
+                            <li>✅ Your login credentials are never stored</li>
+                            <li>✅ Data is processed locally on your device</li>
+                            <li>✅ Plaid-certified security standards</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Data Retention</h6>
+                        <p class="text-muted">
+                            Transaction data is stored locally in <code>.plaid_tokens.json</code>. 
+                            You can delete this file to remove all stored connections.
+                        </p>
+                        
+                        <button class="btn btn-outline-warning" onclick="clearAllData()">
+                            🗑️ Clear All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>⚡ Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/connect" class="btn btn-primary me-2">🏦 Connect New Account</a>
+                <a href="/analysis" class="btn btn-success me-2">📊 View Analysis</a>
+                <a href="/" class="btn btn-info">📈 Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function removeConnection(institution) {
+    if (confirm(`Are you sure you want to remove the connection to ${institution}?`)) {
+        fetch('/api/remove_connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                institution: institution
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error removing connection: ' + error);
+        });
+    }
+}
+
+function exportData() {
+    const days = document.getElementById('exportDays').value;
+    const url = days === 'all' ? '/export' : `/export?days=${days}`;
+    window.open(url, '_blank');
+}
+
+function copyToClipboard(text) {
+    const fullUrl = window.location.origin + text;
+    navigator.clipboard.writeText(fullUrl).then(function() {
+        alert('URL copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+function clearAllData() {
+    if (confirm('Are you sure you want to clear all connected accounts and data? This cannot be undone.')) {
+        if (confirm('This will remove all bank connections. You will need to reconnect your accounts. Continue?')) {
+            // This would require a backend endpoint to actually clear the data
+            alert('Feature coming soon. For now, you can delete the .plaid_tokens.json file manually.');
+        }
+    }
+}
+</script>
+{% endblock %}

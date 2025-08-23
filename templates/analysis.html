@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>📊 Expense Analysis</h2>
+        <p class="text-muted">Analysis of {{ total_transactions }} transactions over the last {{ date_range }} days</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5>Total Spending</h5>
+                <h3>${{ "%.2f"|format(insights.total_spending) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>Avg Transaction</h5>
+                <h3>${{ "%.2f"|format(insights.average_transaction) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white {% if insights.spending_trend > 0 %}bg-warning{% else %}bg-success{% endif %}">
+            <div class="card-body">
+                <h5>Spending Trend</h5>
+                <h3>{{ "%+.1f"|format(insights.spending_trend) }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5>Unusual Transactions</h5>
+                <h3>{{ insights.unusual_transactions_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>📋 Spending by Category</h5>
+            </div>
+            <div class="card-body">
+                <div id="categoryChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>📈 Monthly Trends</h5>
+            </div>
+            <div class="card-body">
+                <div id="monthlyChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations -->
+{% if insights.recommendations %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>💡 Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for recommendation in insights.recommendations %}
+                    <li class="list-group-item">{{ recommendation }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Potential Savings -->
+{% if potential_savings %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🎯 Potential Savings</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="text-success">Monthly: ${{ "%.2f"|format(potential_savings.total_monthly_savings|default(0)) }}</h4>
+                        <h4 class="text-success">Annual: ${{ "%.2f"|format(potential_savings.total_annual_savings|default(0)) }}</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>By Category:</h6>
+                        {% for category, data in potential_savings.items() %}
+                            {% if data is mapping and 'potential_monthly_savings' in data %}
+                            <div class="mb-2">
+                                <strong>{{ category }}:</strong> ${{ "%.2f"|format(data.potential_monthly_savings) }}/month
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Export Options -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📤 Export Data</h5>
+            </div>
+            <div class="card-body">
+                <a href="/export?format=csv&days={{ date_range }}" class="btn btn-outline-primary">
+                    📄 Export as CSV
+                </a>
+                <a href="/api/insights?days={{ date_range }}" class="btn btn-outline-info">
+                    🔗 API JSON
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Category breakdown pie chart
+var categoryData = {{ category_data|tojson }};
+var categoryLabels = Object.keys(categoryData);
+var categoryValues = Object.values(categoryData);
+
+var categoryTrace = {
+    labels: categoryLabels,
+    values: categoryValues,
+    type: 'pie',
+    marker: {
+        colors: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6f42c1', '#fd7e14']
+    }
+};
+
+Plotly.newPlot('categoryChart', [categoryTrace], {
+    margin: { t: 0, b: 0, l: 0, r: 0 }
+});
+
+// Monthly trends line chart
+var monthlyData = {{ monthly_data|tojson }};
+var months = Object.keys(monthlyData);
+var spending = Object.values(monthlyData);
+
+var monthlyTrace = {
+    x: months,
+    y: spending,
+    type: 'scatter',
+    mode: 'lines+markers',
+    line: { color: '#007bff', width: 3 },
+    marker: { size: 8 }
+};
+
+Plotly.newPlot('monthlyChart', [monthlyTrace], {
+    margin: { t: 20, b: 40, l: 60, r: 20 },
+    xaxis: { title: 'Month' },
+    yaxis: { title: 'Spending ($)' }
+});
+</script>
+{% endblock %}

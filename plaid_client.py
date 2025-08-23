@@ -135,9 +135,12 @@ class PlaidClient:
             request = TransactionsGetRequest(
                 access_token=access_token,
                 start_date=start_date.date(),
-                end_date=end_date.date(),
-                account_ids=account_ids
+                end_date=end_date.date()
             )
+            
+            # Add account_ids only if provided and not empty
+            if account_ids:
+                request.account_ids = account_ids
             
             response = self.client.transactions_get(request)
             transactions = response['transactions']
@@ -150,7 +153,7 @@ class PlaidClient:
                     'Description': transaction['name'],
                     'Amount': abs(transaction['amount']),  # Make positive for expenses
                     'Account': transaction['account_id'],
-                    'Category': ' > '.join(transaction.get('category', ['Other'])),
+                    'Category': ' > '.join(transaction.get('category', [])) if transaction.get('category') else 'Other',
                     'transaction_id': transaction['transaction_id'],
                     'merchant_name': transaction.get('merchant_name', ''),
                     'account_owner': transaction.get('account_owner', '')

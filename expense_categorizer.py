@@ -13,21 +13,87 @@ from typing import List, Dict, Optional
 class ExpenseCategorizer:
     def __init__(self):
         self.model = None
+        # Essential Categories
         self.categories = [
-            'Groceries', 'Dining', 'Transportation', 'Utilities', 'Entertainment',
-            'Healthcare', 'Shopping', 'Bills', 'Travel', 'Other'
+            # Essential
+            'Housing', 'Food & Groceries', 'Transportation', 'Healthcare', 
+            'Insurance', 'Debt Payments',
+            # Lifestyle
+            'Dining Out & Restaurants', 'Entertainment', 'Shopping & Retail', 
+            'Travel & Vacation', 'Hobbies & Recreation', 'Personal Care',
+            # Financial
+            'Savings', 'Investments', 'Emergency Fund', 'Retirement Contributions',
+            # Miscellaneous
+            'Gifts & Donations', 'Education', 'Pet Care', 'Home Improvement',
+            'Professional Services', 'Subscriptions', 'ATM/Cash Withdrawals',
+            'Fees & Charges', 'Uncategorized/Other'
         ]
+        
         self.category_keywords = {
-            'Groceries': ['grocery', 'supermarket', 'walmart', 'target', 'costco', 'safeway', 'kroger', 'whole foods'],
-            'Dining': ['restaurant', 'food', 'cafe', 'starbucks', 'mcdonalds', 'pizza', 'dining'],
-            'Transportation': ['gas', 'fuel', 'uber', 'lyft', 'taxi', 'parking', 'metro', 'transit'],
-            'Utilities': ['electric', 'water', 'gas bill', 'internet', 'phone', 'cable', 'utility'],
-            'Entertainment': ['netflix', 'spotify', 'movie', 'theater', 'gym', 'subscription'],
-            'Healthcare': ['pharmacy', 'doctor', 'medical', 'cvs', 'walgreens', 'hospital'],
-            'Shopping': ['amazon', 'ebay', 'store', 'mall', 'clothing', 'best buy'],
-            'Bills': ['insurance', 'mortgage', 'rent', 'loan', 'credit card', 'bank fee'],
-            'Travel': ['hotel', 'airline', 'flight', 'booking', 'airbnb'],
-            'Other': []
+            # Essential Categories
+            'Housing': ['rent', 'mortgage', 'property tax', 'hoa', 'utilities', 'electric', 'water', 
+                       'gas bill', 'internet', 'cable', 'phone', 'home insurance', 'renters insurance'],
+            'Food & Groceries': ['grocery', 'supermarket', 'walmart', 'target', 'costco', 'safeway', 
+                                'kroger', 'whole foods', 'trader joes', 'aldi', 'food lion', 'publix'],
+            'Transportation': ['gas', 'fuel', 'car payment', 'auto loan', 'car insurance', 'maintenance',
+                              'repair', 'oil change', 'tire', 'uber', 'lyft', 'taxi', 'metro', 'transit',
+                              'parking', 'toll', 'registration', 'dmv'],
+            'Healthcare': ['doctor', 'hospital', 'pharmacy', 'prescription', 'cvs', 'walgreens', 
+                          'medical', 'dental', 'vision', 'clinic', 'copay', 'health insurance'],
+            'Insurance': ['life insurance', 'health insurance', 'auto insurance', 'home insurance',
+                         'disability insurance', 'umbrella insurance'],
+            'Debt Payments': ['credit card payment', 'loan payment', 'student loan', 'personal loan',
+                             'minimum payment', 'debt'],
+            
+            # Lifestyle Categories
+            'Dining Out & Restaurants': ['restaurant', 'cafe', 'starbucks', 'mcdonalds', 'pizza', 
+                                        'dining', 'takeout', 'delivery', 'doordash', 'ubereats',
+                                        'grubhub', 'fast food', 'bar', 'brewery'],
+            'Entertainment': ['netflix', 'spotify', 'hulu', 'disney', 'amazon prime', 'movie', 
+                             'theater', 'cinema', 'concert', 'tickets', 'streaming', 'gaming'],
+            'Shopping & Retail': ['amazon', 'ebay', 'store', 'mall', 'clothing', 'best buy', 
+                                 'electronics', 'furniture', 'home depot', 'lowes', 'merchandise'],
+            'Travel & Vacation': ['hotel', 'airline', 'flight', 'booking', 'airbnb', 'vacation',
+                                 'travel', 'car rental', 'cruise', 'resort'],
+            'Hobbies & Recreation': ['gym', 'fitness', 'sports', 'hobby', 'craft', 'music lessons',
+                                    'recreation', 'club membership', 'equipment'],
+            'Personal Care': ['haircut', 'salon', 'spa', 'cosmetics', 'skincare', 'barber',
+                             'nail salon', 'massage', 'beauty'],
+            
+            # Financial Categories
+            'Savings': ['savings account', 'savings transfer', 'emergency savings'],
+            'Investments': ['investment', 'brokerage', 'stock', 'mutual fund', 'etf', 'trading'],
+            'Emergency Fund': ['emergency fund', 'emergency savings'],
+            'Retirement Contributions': ['401k', 'ira', 'retirement', 'pension'],
+            
+            # Miscellaneous Categories
+            'Gifts & Donations': ['gift', 'donation', 'charity', 'church', 'nonprofit', 'birthday',
+                                 'wedding', 'holiday'],
+            'Education': ['tuition', 'school', 'books', 'course', 'training', 'certification',
+                         'education', 'learning'],
+            'Pet Care': ['pet', 'veterinarian', 'vet', 'dog', 'cat', 'petco', 'petsmart',
+                        'pet food', 'grooming'],
+            'Home Improvement': ['home depot', 'lowes', 'hardware', 'repair', 'renovation',
+                               'contractor', 'plumber', 'electrician'],
+            'Professional Services': ['lawyer', 'attorney', 'accountant', 'tax', 'legal',
+                                     'consultant', 'professional'],
+            'Subscriptions': ['subscription', 'monthly fee', 'annual fee', 'membership'],
+            'ATM/Cash Withdrawals': ['atm', 'cash withdrawal', 'cash advance'],
+            'Fees & Charges': ['fee', 'charge', 'overdraft', 'late fee', 'service charge',
+                              'maintenance fee', 'penalty'],
+            'Uncategorized/Other': []
+        }
+        
+        # Category groupings for analysis
+        self.category_groups = {
+            'Essential': ['Housing', 'Food & Groceries', 'Transportation', 'Healthcare', 
+                         'Insurance', 'Debt Payments'],
+            'Lifestyle': ['Dining Out & Restaurants', 'Entertainment', 'Shopping & Retail', 
+                         'Travel & Vacation', 'Hobbies & Recreation', 'Personal Care'],
+            'Financial': ['Savings', 'Investments', 'Emergency Fund', 'Retirement Contributions'],
+            'Miscellaneous': ['Gifts & Donations', 'Education', 'Pet Care', 'Home Improvement',
+                             'Professional Services', 'Subscriptions', 'ATM/Cash Withdrawals',
+                             'Fees & Charges', 'Uncategorized/Other']
         }
     
     def clean_description(self, description: str) -> str:
@@ -51,7 +117,7 @@ class ExpenseCategorizer:
                 continue
             
             # Find category based on keywords
-            category = 'Other'
+            category = 'Uncategorized/Other'
             for cat, keywords in self.category_keywords.items():
                 if any(keyword in description for keyword in keywords):
                     category = cat
@@ -120,6 +186,19 @@ class ExpenseCategorizer:
         """Load trained model from file"""
         with open(filepath, 'rb') as f:
             self.model = pickle.load(f)
+    
+    def get_category_group(self, category: str) -> str:
+        """Get the group (Essential, Lifestyle, Financial, Miscellaneous) for a category"""
+        for group, categories in self.category_groups.items():
+            if category in categories:
+                return group
+        return 'Miscellaneous'
+    
+    def categorize_by_group(self, transactions_df: pd.DataFrame) -> pd.DataFrame:
+        """Add category group column to transactions"""
+        df = transactions_df.copy()
+        df['Category_Group'] = df['Category'].apply(self.get_category_group)
+        return df
 
 
 def load_bank_csv(filepath: str, amount_col: str = 'Amount', 
