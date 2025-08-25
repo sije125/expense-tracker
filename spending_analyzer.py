@@ -146,7 +146,7 @@ class SpendingAnalyzer:
         # Specific category recommendations
         category_totals = category_analysis['totals']['sum']
         
-        if 'Dining' in category_totals and category_totals['Dining'] > category_totals.get('Groceries', 0):
+        if 'Dining Out & Restaurants' in category_totals and category_totals['Dining Out & Restaurants'] > category_totals.get('Food & Groceries', 0):
             insights['recommendations'].append(
                 "You spend more on dining out than groceries - cooking at home could save money"
             )
@@ -154,6 +154,16 @@ class SpendingAnalyzer:
         if 'Entertainment' in category_totals and category_analysis['percentages']['Entertainment'] > 15:
             insights['recommendations'].append(
                 "Entertainment spending is high - consider free or low-cost alternatives"
+            )
+        
+        if 'Subscriptions' in category_totals and category_analysis['percentages']['Subscriptions'] > 5:
+            insights['recommendations'].append(
+                "Review your subscriptions - you might have unused services to cancel"
+            )
+        
+        if 'Fees & Charges' in category_totals and category_totals['Fees & Charges'] > 50:
+            insights['recommendations'].append(
+                "You're paying significant fees - look into fee-free alternatives"
             )
         
         return insights
@@ -166,22 +176,33 @@ class SpendingAnalyzer:
         category_analysis = self.category_spending_analysis()
         category_totals = category_analysis['totals']['sum']
         
-        # Conservative savings estimates
+        # Conservative savings estimates using new category names
         savings_potential = {
-            'Dining': 0.30,  # 30% savings by cooking more
+            'Dining Out & Restaurants': 0.30,  # 30% savings by cooking more
             'Entertainment': 0.25,  # 25% savings with free alternatives
-            'Shopping': 0.20,  # 20% savings with mindful shopping
+            'Shopping & Retail': 0.20,  # 20% savings with mindful shopping
             'Transportation': 0.15,  # 15% savings with optimization
-            'Utilities': 0.10,  # 10% savings with efficiency
-            'Groceries': 0.15,  # 15% savings with planning
+            'Housing': 0.10,  # 10% savings with efficiency (utilities part of housing)
+            'Food & Groceries': 0.15,  # 15% savings with planning
+            'Personal Care': 0.20,  # 20% savings with DIY alternatives
+            'Hobbies & Recreation': 0.25,  # 25% savings with free alternatives
+            'Travel & Vacation': 0.15,  # 15% savings with planning and deals
+            'Subscriptions': 0.30,  # 30% savings by canceling unused subscriptions
+            'Fees & Charges': 0.50,  # 50% savings by avoiding unnecessary fees
         }
         
         potential_savings = {}
         total_potential = 0
         
+        # Calculate monthly averages from the data
+        monthly_summary = self.monthly_spending_summary()
+        months_of_data = len(monthly_summary)
+        
         for category, percentage in savings_potential.items():
             if category in category_totals:
-                monthly_spending = category_totals[category]
+                total_spending = category_totals[category]
+                # Calculate average monthly spending
+                monthly_spending = total_spending / max(months_of_data, 1) if months_of_data > 0 else total_spending
                 potential_monthly_savings = monthly_spending * percentage
                 potential_savings[category] = {
                     'monthly_spending': monthly_spending,

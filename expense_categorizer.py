@@ -26,7 +26,7 @@ class ExpenseCategorizer:
             # Miscellaneous
             'Gifts & Donations', 'Education', 'Pet Care', 'Home Improvement',
             'Professional Services', 'Subscriptions', 'ATM/Cash Withdrawals',
-            'Fees & Charges', 'Uncategorized/Other'
+            'Personal Transfers', 'Fees & Charges', 'Uncategorized/Other'
         ]
         
         self.category_keywords = {
@@ -34,12 +34,16 @@ class ExpenseCategorizer:
             'Housing': ['rent', 'mortgage', 'property tax', 'hoa', 'utilities', 'electric', 'water', 
                        'gas bill', 'internet', 'cable', 'phone', 'home insurance', 'renters insurance'],
             'Food & Groceries': ['grocery', 'supermarket', 'walmart', 'target', 'costco', 'safeway', 
-                                'kroger', 'whole foods', 'trader joes', 'aldi', 'food lion', 'publix'],
+                                'kroger', 'whole foods', 'trader joes', 'aldi', 'food lion', 'publix',
+                                'market', 'food', 'fresh', 'organic', 'produce', 'deli', 'bakery'],
             'Transportation': ['gas', 'fuel', 'car payment', 'auto loan', 'car insurance', 'maintenance',
                               'repair', 'oil change', 'tire', 'uber', 'lyft', 'taxi', 'metro', 'transit',
-                              'parking', 'toll', 'registration', 'dmv'],
+                              'parking', 'toll', 'registration', 'dmv', 'qt', 'exxon', 'shell', 'chevron',
+                              'bp', '7-eleven', 'circle k', 'wawa', 'speedway', 'tire store', 'jiffy lube',
+                              'valvoline', 'plat parking', 'park', 'garage'],
             'Healthcare': ['doctor', 'hospital', 'pharmacy', 'prescription', 'cvs', 'walgreens', 
-                          'medical', 'dental', 'vision', 'clinic', 'copay', 'health insurance'],
+                          'medical', 'dental', 'vision', 'clinic', 'copay', 'health insurance',
+                          'bicycle health', 'urgent care', 'telehealth'],
             'Insurance': ['life insurance', 'health insurance', 'auto insurance', 'home insurance',
                          'disability insurance', 'umbrella insurance'],
             'Debt Payments': ['credit card payment', 'loan payment', 'student loan', 'personal loan',
@@ -48,7 +52,10 @@ class ExpenseCategorizer:
             # Lifestyle Categories
             'Dining Out & Restaurants': ['restaurant', 'cafe', 'starbucks', 'mcdonalds', 'pizza', 
                                         'dining', 'takeout', 'delivery', 'doordash', 'ubereats',
-                                        'grubhub', 'fast food', 'bar', 'brewery'],
+                                        'grubhub', 'fast food', 'bar', 'brewery', 'arbys', 'wendys',
+                                        'panda express', 'taco bell', 'burger king', 'kfc', 'subway',
+                                        'chipotle', 'dominos', 'papa johns', 'sonic', 'dairy queen',
+                                        'rosa cafe', 'qdoba', 'five guys', 'in-n-out'],
             'Entertainment': ['netflix', 'spotify', 'hulu', 'disney', 'amazon prime', 'movie', 
                              'theater', 'cinema', 'concert', 'tickets', 'streaming', 'gaming'],
             'Shopping & Retail': ['amazon', 'ebay', 'store', 'mall', 'clothing', 'best buy', 
@@ -61,7 +68,8 @@ class ExpenseCategorizer:
                              'nail salon', 'massage', 'beauty'],
             
             # Financial Categories
-            'Savings': ['savings account', 'savings transfer', 'emergency savings'],
+            'Savings': ['savings account', 'savings transfer', 'emergency savings', 'apple gs savings', 
+                       'apple savings', 'high yield', 'money market'],
             'Investments': ['investment', 'brokerage', 'stock', 'mutual fund', 'etf', 'trading'],
             'Emergency Fund': ['emergency fund', 'emergency savings'],
             'Retirement Contributions': ['401k', 'ira', 'retirement', 'pension'],
@@ -77,10 +85,14 @@ class ExpenseCategorizer:
                                'contractor', 'plumber', 'electrician'],
             'Professional Services': ['lawyer', 'attorney', 'accountant', 'tax', 'legal',
                                      'consultant', 'professional'],
-            'Subscriptions': ['subscription', 'monthly fee', 'annual fee', 'membership'],
+            'Subscriptions': ['subscription', 'monthly fee', 'annual fee', 'membership', 'recurring',
+                             'primo brands', 'water delivery', 'paypro'],
             'ATM/Cash Withdrawals': ['atm', 'cash withdrawal', 'cash advance'],
+            'Personal Transfers': ['zelle', 'venmo', 'cashapp', 'paypal', 'transfer', 'apple pay cash'],
             'Fees & Charges': ['fee', 'charge', 'overdraft', 'late fee', 'service charge',
-                              'maintenance fee', 'penalty'],
+                              'maintenance fee', 'penalty', 'atm fee', 'foreign transaction',
+                              'wire transfer', 'stop payment', 'returned item', 'tarrant county',
+                              'county fee', 'city fee', 'government'],
             'Uncategorized/Other': []
         }
         
@@ -93,7 +105,7 @@ class ExpenseCategorizer:
             'Financial': ['Savings', 'Investments', 'Emergency Fund', 'Retirement Contributions'],
             'Miscellaneous': ['Gifts & Donations', 'Education', 'Pet Care', 'Home Improvement',
                              'Professional Services', 'Subscriptions', 'ATM/Cash Withdrawals',
-                             'Fees & Charges', 'Uncategorized/Other']
+                             'Fees & Charges', 'Personal Transfers', 'Uncategorized/Other']
         }
     
     def clean_description(self, description: str) -> str:
