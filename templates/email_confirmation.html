@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Email Confirmation - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if confirmed %}
+                    <div class="text-success mb-4">
+                        <i class="fas fa-check-circle fa-3x"></i>
+                    </div>
+                    <h4 class="text-success mb-4">Email Confirmed Successfully!</h4>
+                    <p class="text-muted mb-4">Your email address has been confirmed. You can now sign in to your account and start tracking your expenses.</p>
+                    
+                    <div class="d-grid">
+                        <a href="{{ url_for('signin') }}" class="btn btn-success btn-lg">
+                            Sign In Now
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-warning mb-4">
+                        <i class="fas fa-envelope fa-3x"></i>
+                    </div>
+                    <h4 class="text-warning mb-4">Please Confirm Your Email</h4>
+                    <p class="text-muted mb-4">
+                        {% if message %}
+                            {{ message }}
+                        {% else %}
+                            We've sent a confirmation email to your address. Please check your inbox and click the confirmation link to activate your account.
+                        {% endif %}
+                    </p>
+                    
+                    {% if not token_valid %}
+                        <div class="alert alert-warning mb-4">
+                            <strong>Link Expired or Invalid</strong><br>
+                            The confirmation link may have expired or is invalid. Please request a new confirmation email.
+                        </div>
+                        
+                        <form method="POST" id="resend-form" class="mb-4">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required 
+                                       placeholder="your.email@example.com">
+                                <div class="invalid-feedback" id="email-feedback"></div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="resend-btn">
+                                    Resend Confirmation Email
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Already confirmed? 
+                            <a href="{{ url_for('signin') }}" class="text-decoration-none">Sign in here</a>
+                        </p>
+                    </div>
+                {% endif %}
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mt-4">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not confirmed %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('resend-form');
+    if (!form) return;
+    
+    const emailInput = document.getElementById('email');
+    const resendBtn = document.getElementById('resend-btn');
+    
+    // Email validation
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    // Real-time validation
+    emailInput.addEventListener('input', function() {
+        const isValid = validateEmail(this.value);
+        this.classList.toggle('is-valid', isValid && this.value.length > 0);
+        this.classList.toggle('is-invalid', !isValid && this.value.length > 0);
+        
+        if (!isValid && this.value.length > 0) {
+            document.getElementById('email-feedback').textContent = 'Please enter a valid email address.';
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate email
+        if (!validateEmail(emailInput.value)) {
+            emailInput.classList.add('is-invalid');
+            document.getElementById('email-feedback').textContent = 'Please enter a valid email address.';
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending Email...';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

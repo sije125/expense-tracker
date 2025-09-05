@@ -1,9 +1,10 @@
 # Expense Tracker 💰
 
-**Next-generation ML-powered expense tracker** that provides brutally honest spending insights and specific, actionable savings recommendations. No more generic financial advice - get real recommendations based on your actual spending patterns!
+**Next-generation ML-powered expense tracker** with secure user authentication that provides brutally honest spending insights and specific, actionable savings recommendations. No more generic financial advice - get real recommendations based on your actual spending patterns!
 
 ## ✨ Key Features
 
+🔐 **Secure User Authentication**: Complete registration, login, and password recovery system  
 🏦 **Secure Bank Integration**: Real-time connection to 10,000+ banks via Plaid API  
 🤖 **Advanced AI Categorization**: 24 comprehensive spending categories with 95%+ accuracy  
 🔍 **Subscription Detective**: Identifies specific subscriptions and mystery charges  
@@ -13,58 +14,132 @@
 🚨 **Fraud Detection**: Identifies unusual transactions and potential issues  
 🌐 **Professional Web Interface**: Modern, responsive design with real-time updates
 
-## Quick Start
+### 🔐 User Authentication
+- **Secure User Accounts**: Complete user registration and authentication system
+- **Email Confirmation**: Email verification for account security
+- **Password Reset**: Secure password recovery via email
+- **Session Management**: Persistent login sessions with Flask-Login
+- **Password Security**: Strong password requirements and secure hashing
 
-### 🚀 Quick Setup (2 minutes)
+### 📱 Web Dashboard
+- **Interactive Dashboard**: Clean, responsive web interface built with Flask and Bootstrap
+- **Real-time Updates**: Live transaction feeds and spending summaries
+- **Visual Charts**: Interactive charts powered by Plotly for spending visualization
+- **Export Functionality**: Download transaction data in CSV format for external analysis
+- **Mobile Responsive**: Works seamlessly on desktop and mobile devices
+- **Protected Routes**: All financial data protected by user authentication
 
-1. **Install dependencies:**
+## 🚀 Quick Setup
+
+### Prerequisites
+- Python 3.8+
+- Plaid developer account ([sign up here](https://dashboard.plaid.com/signup))
+- Gmail account for email notifications (required for user registration)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/expense-tracker.git
+   cd expense-tracker
+   ```
+
+2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Start the web interface:**
+3. **Set up environment variables**
    ```bash
-   python main.py web
+   cp .env.example .env
+   # Edit .env with your credentials
    ```
 
-3. **Open http://localhost:8081** in your browser
-
-4. **Connect your bank securely** via Plaid Link (bank-level encryption)
-
-5. **Get instant insights** - see exactly where your money goes!
-
-### Option 2: CSV Upload
-
-1. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
+4. **Configure your .env file**
+   ```env
+   # Plaid API Configuration
+   PLAID_CLIENT_ID=your_plaid_client_id
+   PLAID_SECRET=your_plaid_secret
+   PLAID_ENV=production  # or sandbox for testing
+   
+   # Flask Configuration
+   FLASK_SECRET_KEY=your_secure_secret_key
+   
+   # Database Configuration
+   DATABASE_URL=sqlite:///expense_tracker.db
+   
+   # Email Configuration (required for user accounts)
+   MAIL_SERVER=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USE_TLS=true
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
    ```
 
-2. **Export your bank transactions** as CSV (most banks support this)
-
-3. **Run the analyzer:**
+5. **Initialize the database**
    ```bash
-   # Interactive mode
-   python main.py interactive
-
-   # Direct analysis
-   python main.py analyze your_transactions.csv
-
-   # Generate dashboard
-   python main.py dashboard your_transactions.csv
-
-   # Get savings recommendations
-   python main.py recommendations your_transactions.csv
+   python3 -c "from web_app import app, db; app.app_context().push(); db.create_all(); print('Database initialized')"
    ```
 
-## CSV Format
+6. **Run the application**
+   ```bash
+   python web_app.py
+   ```
 
-Your bank CSV should contain columns for:
-- **Amount/Debit** - Transaction amount
-- **Description/Memo/Payee** - Transaction description  
-- **Date** - Transaction date
+7. **Open your browser**
+   Navigate to `http://localhost:8080`
 
-The tool automatically detects common column names and formats.
+8. **Create your account**
+   - Click "Sign Up" to create a new account
+   - Verify your email address
+   - Sign in to access the dashboard
+
+## 🏗️ Project Structure
+
+```
+expense-tracker/
+├── web_app.py                    # Main Flask web application
+├── models.py                     # Database models (User, etc.)
+├── email_service.py              # Email service for notifications
+├── plaid_client.py               # Plaid API integration
+├── spending_analyzer.py          # AI-powered spending analysis
+├── expense_categorizer.py        # Transaction categorization logic
+├── visualizer.py                 # Chart generation and data visualization
+├── requirements.txt              # Python dependencies
+├── .env.example                  # Environment variables template
+├── instance/                     # Database files
+│   └── expense_tracker.db        # SQLite database
+└── templates/                    # HTML templates for web interface
+    ├── base.html                 # Base template with navigation
+    ├── dashboard.html            # Main dashboard
+    ├── analysis.html             # Detailed spending analysis
+    ├── connect.html              # Bank account connection
+    ├── settings.html             # Account settings and management
+    ├── signup.html               # User registration
+    ├── signin.html               # User login
+    ├── forgot_password.html      # Password recovery
+    ├── reset_password.html       # Password reset form
+    └── email_confirmation.html   # Email verification page
+```
+
+## 🎯 Getting Started
+
+### Key Features
+- **Authentication**: Secure user registration, login, and password recovery
+- **Dashboard**: Overview of recent transactions and spending summary
+- **Analysis**: Detailed spending breakdowns with AI-powered insights
+- **Connect**: Link new bank accounts using secure Plaid integration
+- **Settings**: Manage connected accounts and application preferences
+- **Profile Management**: Update account settings and manage email preferences
+
+### Getting Started
+1. **Create Account**: Register with your email and create a secure password
+2. **Verify Email**: Click the verification link sent to your email
+3. **Sign In**: Log in to access your personal dashboard
+4. **Connect Bank Account**: Click "Connect Bank Account" and follow Plaid Link flow
+5. **View Dashboard**: See your recent transactions and quick spending insights
+6. **Analyze Spending**: Go to Analysis page for detailed breakdowns and recommendations
+7. **Export Data**: Download your transaction data in CSV format from the Export page
 
 ## 🏷️ Comprehensive Categorization System
 
@@ -111,11 +186,11 @@ The tool automatically detects common column names and formats.
 📈 Spending Trend: -8.2% (improving!)
 
 📋 TOP SPENDING CATEGORIES:
-   Dining Out & Restaurants: 32.1%
-   Food & Groceries: 18.5%
-   Subscriptions: 12.3%
-   Transportation: 11.7%
-   Shopping & Retail: 9.8%
+  Dining Out & Restaurants: 32.1%
+  Food & Groceries: 18.5%
+  Subscriptions: 12.3%
+  Transportation: 11.7%
+  Shopping & Retail: 9.8%
 ```
 
 ### Brutally Specific Recommendations
@@ -142,26 +217,36 @@ The tool automatically detects common column names and formats.
    Switch to a fee-free bank to eliminate these completely.
 ```
 
-### Specific Action Plans
-```
-🎯 POTENTIAL SAVINGS: $742.35/month • $8,908.20/year
+## 🛠️ API Endpoints
 
-DINING OUT SCENARIO:
-Current: $1,547/month
-Potential Savings: $618.80/month ($7,425.60/year)
-Action Plan: Cook at home 3-4 more times per week instead of eating out 47 times. 
-At $32.91 per meal, this saves $618.80/month.
+The application provides several API endpoints for programmatic access (authentication required):
 
-SUBSCRIPTIONS SCENARIO:  
-Current: $285.50/month
-Potential Savings: $99.93/month ($1,199.16/year)
-Action Plan: Cancel mystery charges and unused services like that Adobe 
-subscription you forgot about.
+**Financial Data:**
+- `GET /api/transactions?days=30&format=json` - Get transaction data
+- `GET /api/insights?days=365` - Get spending insights
+- `POST /api/exchange_token` - Exchange Plaid public token
+- `POST /api/remove_connection` - Remove bank connection
+- `GET /api/create_link_token` - Create new Plaid Link token
 
-COMBINED IMPACT:
-Implement all changes and save $742.35/month ($8,908.20 annually). 
-That's enough for a European vacation or serious emergency fund boost!
-```
+**Authentication Routes:**
+- `POST /signup` - User registration
+- `POST /signin` - User login
+- `GET /signout` - User logout
+- `POST /forgot-password` - Request password reset
+- `POST /reset-password/<token>` - Reset password with token
+- `GET /confirm-email/<token>` - Confirm email address
+
+## 🔒 Security
+
+**User Authentication**: Secure password hashing with Werkzeug security  
+**Session Management**: Protected routes with Flask-Login  
+**Email Verification**: Account verification via email confirmation  
+**Password Recovery**: Secure password reset via email tokens  
+**Bank-Grade Security**: Uses Plaid's secure banking infrastructure  
+**No Credential Storage**: Your banking credentials are never stored locally  
+**Encrypted Connections**: All API communications use HTTPS encryption  
+**Token-Based Auth**: Secure token exchange for bank account access  
+**Local Data Storage**: User and transaction data stored securely in SQLite database
 
 ## 🎯 What Makes This Different
 
@@ -182,95 +267,45 @@ That's enough for a European vacation or serious emergency fund boost!
 - **Real-time updates** - connects to your bank automatically
 - **Mobile responsive** - works on phone, tablet, desktop
 - **Export capabilities** - download data as CSV or JSON
+- **User accounts** - secure, personalized experience for each user
 
-## 🔒 Security & Privacy
+## 🆕 Latest Updates
 
-✅ **Bank-level encryption** - same security as your online banking  
-✅ **Local processing** - all analysis happens on your machine  
-✅ **No data storage** - we don't keep your financial information  
-✅ **Plaid certified** - trusted by major financial institutions  
-✅ **Open source** - audit the code yourself
+### Latest Version Features:
+- **User Authentication System**: Complete user registration and login functionality
+- **Email Integration**: Account verification and password recovery via email
+- **Database Management**: Proper user data storage with SQLite integration
+- **Enhanced Categorization**: Improved accuracy in transaction categorization
+- **Realistic Recommendations**: More honest and achievable savings suggestions
+- **Better Error Handling**: Improved error messages and user feedback
+- **Performance Optimizations**: Faster transaction processing and analysis
+- **UI Improvements**: Cleaner interface and better mobile responsiveness
+- **Security Enhancements**: Protected routes and secure password handling
 
-## 💻 Available Commands
+## 🐛 Troubleshooting
 
-### Web Interface (Recommended)
+### Database Issues
+If you encounter database errors:
 ```bash
-# Start the modern web dashboard
-python main.py web
-# Then open http://localhost:8081
-
-# Features:
-# ✅ Connect bank accounts securely
-# ✅ Interactive charts and graphs  
-# ✅ Real-time transaction analysis
-# ✅ Detailed savings scenarios
-# ✅ Export data and reports
+# Re-initialize the database
+python3 -c "from web_app import app, db; app.app_context().push(); db.drop_all(); db.create_all(); print('Database reset')"
 ```
 
-### Bank Connection (Plaid API)
-```bash
-# Analyze your connected bank accounts
-python main.py plaid-analyze --days 90
+### Email Configuration
+For Gmail, you'll need to:
+1. Enable 2-factor authentication
+2. Generate an "App Password" for the application
+3. Use the app password in your `.env` file
 
-# Check connection status
-python main.py plaid-connect
+### Common Issues
+- **Import errors**: Make sure all dependencies are installed with `pip install -r requirements.txt`
+- **Port conflicts**: Change the port in `web_app.py` if 8080 is in use
+- **Plaid connection issues**: Verify your Plaid credentials and environment setting
 
-# Get last 30 days of transactions
-python main.py plaid-analyze --days 30
-```
+## 📄 License
 
-### CSV Analysis (Manual Upload)
-```bash
-# Interactive mode - guides you through the process
-python main.py interactive
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-# Direct analysis with detailed insights
-python main.py analyze your_transactions.csv
+## 🤝 Contributing
 
-# Generate visual dashboard with charts
-python main.py dashboard your_transactions.csv --save-plots
-
-# Get specific savings recommendations  
-python main.py recommendations your_transactions.csv
-```
-
-### Advanced Options
-```bash
-# Analyze specific time periods
-python main.py plaid-analyze --days 180  # Last 6 months
-
-# Save dashboard images
-python main.py dashboard data.csv --save-plots
-
-# Get help
-python main.py --help
-```
-
-## File Structure
-
-```
-expense-tracker/
-├── main.py              # Main application entry point
-├── expense_categorizer.py # ML categorization engine
-├── spending_analyzer.py   # Analysis and insights
-├── visualizer.py         # Charts and graphs
-├── requirements.txt      # Python dependencies
-└── README.md            # This file
-```
-
-## Tips for Better Results
-
-1. **Include transaction descriptions** - more detail = better categorization
-2. **Use recent data** - at least 3-6 months for trend analysis  
-3. **Regular analysis** - run monthly to track progress
-4. **Export all transactions** - including small amounts for complete picture
-
-## Supported Bank Formats
-
-The tool works with CSV exports from most major banks including:
-- Chase, Bank of America, Wells Fargo
-- Capital One, Discover, American Express  
-- Credit unions and regional banks
-- Most fintech apps (Venmo, PayPal, etc.)
-
-Just ensure your CSV has amount, description, and date columns.
+Contributions are welcome! Please feel free to submit a Pull Request.

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="text-center mb-4">💰 Create Your Account</h4>
+                <p class="text-center text-muted mb-4">Start tracking your expenses today!</p>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" id="signup-form">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                               placeholder="your.email@example.com"
+                               value="{{ request.form.email if request.form.email }}">
+                        <div class="invalid-feedback" id="email-feedback"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="invalid-feedback" id="password-feedback"></div>
+                        <div class="form-text">
+                            Password must be at least 8 characters long and contain:
+                            <ul class="mt-2 mb-0" style="font-size: 0.85em;">
+                                <li id="length-req" class="text-danger">At least 8 characters</li>
+                                <li id="upper-req" class="text-danger">One uppercase letter (A-Z)</li>
+                                <li id="number-req" class="text-danger">One number (0-9)</li>
+                                <li id="special-req" class="text-danger">One special character (!@#$%^&*)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        <div class="invalid-feedback" id="confirm-password-feedback"></div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I agree to the Terms of Service and Privacy Policy
+                        </label>
+                        <div class="invalid-feedback" id="terms-feedback"></div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="signup-btn">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="mb-0">Already have an account? 
+                        <a href="{{ url_for('signin') }}" class="text-decoration-none">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('signup-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const termsCheckbox = document.getElementById('terms');
+    const submitBtn = document.getElementById('signup-btn');
+    
+    // Password requirements elements
+    const lengthReq = document.getElementById('length-req');
+    const upperReq = document.getElementById('upper-req');
+    const numberReq = document.getElementById('number-req');
+    const specialReq = document.getElementById('special-req');
+    
+    // Email validation
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    // Password validation
+    function validatePassword(password) {
+        const requirements = {
+            length: password.length >= 8,
+            upper: /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        };
+        
+        // Update visual indicators
+        lengthReq.className = requirements.length ? 'text-success' : 'text-danger';
+        upperReq.className = requirements.upper ? 'text-success' : 'text-danger';
+        numberReq.className = requirements.number ? 'text-success' : 'text-danger';
+        specialReq.className = requirements.special ? 'text-success' : 'text-danger';
+        
+        return Object.values(requirements).every(req => req);
+    }
+    
+    // Real-time validation
+    emailInput.addEventListener('input', function() {
+        const isValid = validateEmail(this.value);
+        this.classList.toggle('is-valid', isValid && this.value.length > 0);
+        this.classList.toggle('is-invalid', !isValid && this.value.length > 0);
+        
+        if (!isValid && this.value.length > 0) {
+            document.getElementById('email-feedback').textContent = 'Please enter a valid email address.';
+        }
+    });
+    
+    passwordInput.addEventListener('input', function() {
+        const isValid = validatePassword(this.value);
+        this.classList.toggle('is-valid', isValid);
+        this.classList.toggle('is-invalid', !isValid && this.value.length > 0);
+        
+        // Check confirm password match if it has value
+        if (confirmPasswordInput.value) {
+            const passwordsMatch = this.value === confirmPasswordInput.value;
+            confirmPasswordInput.classList.toggle('is-valid', passwordsMatch);
+            confirmPasswordInput.classList.toggle('is-invalid', !passwordsMatch);
+            
+            if (!passwordsMatch) {
+                document.getElementById('confirm-password-feedback').textContent = 'Passwords do not match.';
+            }
+        }
+    });
+    
+    confirmPasswordInput.addEventListener('input', function() {
+        const passwordsMatch = this.value === passwordInput.value;
+        this.classList.toggle('is-valid', passwordsMatch && this.value.length > 0);
+        this.classList.toggle('is-invalid', !passwordsMatch && this.value.length > 0);
+        
+        if (!passwordsMatch && this.value.length > 0) {
+            document.getElementById('confirm-password-feedback').textContent = 'Passwords do not match.';
+        }
+    });
+    
+    termsCheckbox.addEventListener('change', function() {
+        this.classList.toggle('is-valid', this.checked);
+        this.classList.toggle('is-invalid', !this.checked);
+        
+        if (!this.checked) {
+            document.getElementById('terms-feedback').textContent = 'You must agree to the terms to continue.';
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate email
+        if (!validateEmail(emailInput.value)) {
+            emailInput.classList.add('is-invalid');
+            document.getElementById('email-feedback').textContent = 'Please enter a valid email address.';
+            isValid = false;
+        }
+        
+        // Validate password
+        if (!validatePassword(passwordInput.value)) {
+            passwordInput.classList.add('is-invalid');
+            document.getElementById('password-feedback').textContent = 'Password does not meet requirements.';
+            isValid = false;
+        }
+        
+        // Validate password confirmation
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            confirmPasswordInput.classList.add('is-invalid');
+            document.getElementById('confirm-password-feedback').textContent = 'Passwords do not match.';
+            isValid = false;
+        }
+        
+        // Validate terms
+        if (!termsCheckbox.checked) {
+            termsCheckbox.classList.add('is-invalid');
+            document.getElementById('terms-feedback').textContent = 'You must agree to the terms to continue.';
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+    });
+});
+</script>
+{% endblock %}
