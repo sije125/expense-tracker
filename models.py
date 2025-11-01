@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
         """Hash and set password"""
         if not self.is_password_valid(password):
             raise ValueError("Password does not meet requirements")
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='pbkdf2')
     
     def check_password(self, password):
         """Check password against hash"""
